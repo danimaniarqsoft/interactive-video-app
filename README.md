@@ -76,9 +76,7 @@ The application fetches this collection dynamically to render the directory look
 
 The word-level time synchronization behaves according to timestamps emitted by your automated `faster-whisper` AI processing sequence:
 
-JSON
-
-```
+```json
 {
   "words": [
     { "word": "Welcome ", "start": "0.14", "end": "0.52" },

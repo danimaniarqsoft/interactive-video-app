@@ -4,6 +4,7 @@ export default function InteractivePlayer({ video }) {
     const [words, setWords] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [currentTime, setCurrentTime] = useState(0); // Track video playback time
     const videoRef = useRef(null);
 
     useEffect(() => {
@@ -22,6 +23,13 @@ export default function InteractivePlayer({ video }) {
                 setLoading(false);
             });
     }, [video]);
+
+    // Update state whenever the video timeline changes position
+    const handleTimeUpdate = () => {
+        if (videoRef.current) {
+            setCurrentTime(videoRef.current.currentTime);
+        }
+    };
 
     const handleWordClick = (start) => {
         if (!videoRef.current) return;
@@ -45,28 +53,52 @@ export default function InteractivePlayer({ video }) {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                {/* Left Side: Video Player */}
                 <div className="lg:col-span-7 sticky top-24">
                     <div className="bg-black rounded-2xl shadow-xl overflow-hidden border border-slate-200 aspect-video flex items-center justify-center">
-                        <video ref={videoRef} src={`/${video.video_url}`} className="w-full h-full object-contain" controls preload="auto" crossOrigin="anonymous" />
+                        <video 
+                            ref={videoRef} 
+                            src={`/${video.video_url}`} 
+                            onTimeUpdate={handleTimeUpdate} // Triggers on every playback frame tick
+                            className="w-full h-full object-contain" 
+                            controls 
+                            preload="auto" 
+                            crossOrigin="anonymous" 
+                        />
                     </div>
                 </div>
 
+                {/* Right Side: Interactive Transcript */}
                 <div className="lg:col-span-5 bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col h-[calc(100vh-14rem)]">
                     <div className="p-5 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl">
-                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Interactive Transcript</h3>
+                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Interactive Transcript</h3>
                     </div>
 
                     <div className="p-6 overflow-y-auto flex-grow text-lg leading-loose text-slate-700">
                         {loading && <div className="text-slate-400 italic">Loading transcript...</div>}
                         {error && <div className="text-red-500 font-bold">Error: {error}</div>}
-                        {!loading && !error && words.map((wordObj, idx) => (
-                            <span 
-                                key={idx} 
-                                onClick={() => handleWordClick(wordObj.start)}
-                                className="word">
-                                {wordObj.word}{' '}
-                            </span>
-                        ))}
+                        
+                        {!loading && !error && words.map((wordObj, idx) => {
+                            const start = parseFloat(wordObj.start);
+                            const end = parseFloat(wordObj.end);
+                            
+                            // Check if this specific word is currently being spoken
+                            const isActive = currentTime >= start && currentTime <= end;
+
+                            return (
+                                <span 
+                                    key={idx} 
+                                    onClick={() => handleWordClick(wordObj.start)}
+                                    className={`word transition-all duration-150 ${
+                                        isActive 
+                                            ? 'bg-blue-100 text-blue-700 font-bold scale-105 shadow-xs ring-1 ring-blue-300' 
+                                            : ''
+                                    }`}
+                                >
+                                    {wordObj.word}{' '}
+                                </span>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
