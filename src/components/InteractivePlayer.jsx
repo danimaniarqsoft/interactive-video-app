@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 
 export default function InteractivePlayer({ video }) {
     const [words, setWords] = useState([]);
+    const [detectedLanguage, setDetectedLanguage] = useState('en');
+    const [languageProbability, setLanguageProbability] = useState(1.0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [currentTime, setCurrentTime] = useState(0); // Tracks real-time video playback
@@ -17,6 +19,8 @@ export default function InteractivePlayer({ video }) {
             })
             .then(data => {
                 setWords(data.words || []);
+                setDetectedLanguage(data.detected_language || 'en');
+                setLanguageProbability(data.language_probability !== undefined ? data.language_probability : 1.0);
                 setLoading(false);
             })
             .catch(err => {
@@ -131,24 +135,36 @@ export default function InteractivePlayer({ video }) {
                                     })}
                                 </div>
                             ) : (
-                                /* Code Editor Style Syntax-Highlighted JSON View with Line Numbers */
-                                <pre className="font-mono text-[11px] leading-relaxed text-slate-300 bg-slate-950 rounded-xl overflow-x-auto text-left py-4 selection:bg-blue-500/30">
+                                /* Code Editor Style Syntax-Highlighted JSON View with Light Theme & Line Numbers */
+                                <pre className="font-mono text-[11px] leading-relaxed text-slate-700 bg-white border border-slate-200 rounded-xl overflow-x-auto text-left py-4 selection:bg-blue-100">
                                     {/* Line 1 */}
-                                    <div className="flex hover:bg-slate-900/40">
-                                        <span className="text-slate-600 select-none text-right w-10 pr-3 border-r border-slate-800/80 sticky left-0 bg-slate-950">1</span>
-                                        <span className="pl-3 text-slate-500">{"{"}</span>
+                                    <div className="flex hover:bg-slate-50">
+                                        <span className="text-slate-400 select-none text-right w-10 pr-3 border-r border-slate-200/60 sticky left-0 bg-slate-50/80 font-medium">1</span>
+                                        <span className="pl-3 text-slate-400">{"{"}</span>
                                     </div>
                                     
-                                    {/* Line 2 */}
-                                    <div className="flex hover:bg-slate-900/40">
-                                        <span className="text-slate-600 select-none text-right w-10 pr-3 border-r border-slate-800/80 sticky left-0 bg-slate-950">2</span>
-                                        <span className="pl-3"><span className="text-cyan-400">{"  \"file_name\""}</span><span className="text-slate-400">:</span> <span className="text-emerald-300">"{video.video_url.split('/').pop()}"</span><span className="text-slate-400">,</span></span>
+                                    {/* Line 2: File Name */}
+                                    <div className="flex hover:bg-slate-50">
+                                        <span className="text-slate-400 select-none text-right w-10 pr-3 border-r border-slate-200/60 sticky left-0 bg-slate-50/80 font-medium">2</span>
+                                        <span className="pl-3"><span className="text-indigo-600 font-medium">{"  \"file_name\""}</span><span className="text-slate-400">:</span> <span className="text-emerald-600">"{video.video_url.split('/').pop()}"</span><span className="text-slate-400">,</span></span>
+                                    </div>
+
+                                    {/* Line 3: Detected Language */}
+                                    <div className="flex hover:bg-slate-50">
+                                        <span className="text-slate-400 select-none text-right w-10 pr-3 border-r border-slate-200/60 sticky left-0 bg-slate-50/80 font-medium">3</span>
+                                        <span className="pl-3"><span className="text-indigo-600 font-medium">{"  \"detected_language\""}</span><span className="text-slate-400">:</span> <span className="text-emerald-600">"{detectedLanguage}"</span><span className="text-slate-400">,</span></span>
+                                    </div>
+
+                                    {/* Line 4: Language Probability */}
+                                    <div className="flex hover:bg-slate-50">
+                                        <span className="text-slate-400 select-none text-right w-10 pr-3 border-r border-slate-200/60 sticky left-0 bg-slate-50/80 font-medium">4</span>
+                                        <span className="pl-3"><span className="text-indigo-600 font-medium">{"  \"language_probability\""}</span><span className="text-slate-400">:</span> <span className="text-amber-600">{languageProbability}</span><span className="text-slate-400">,</span></span>
                                     </div>
                                     
-                                    {/* Line 3 */}
-                                    <div className="flex hover:bg-slate-900/40">
-                                        <span className="text-slate-600 select-none text-right w-10 pr-3 border-r border-slate-800/80 sticky left-0 bg-slate-950">3</span>
-                                        <span className="pl-3"><span className="text-cyan-400">{"  \"words\""}</span><span className="text-slate-400">:</span> <span className="text-slate-500">{"["}</span></span>
+                                    {/* Line 5: Words Array Open */}
+                                    <div className="flex hover:bg-slate-50">
+                                        <span className="text-slate-400 select-none text-right w-10 pr-3 border-r border-slate-200/60 sticky left-0 bg-slate-50/80 font-medium">5</span>
+                                        <span className="pl-3"><span className="text-indigo-600 font-medium">{"  \"words\""}</span><span className="text-slate-400">:</span> <span className="text-slate-400">{"["}</span></span>
                                     </div>
                                     
                                     {/* Loop for individual word blocks */}
@@ -157,28 +173,28 @@ export default function InteractivePlayer({ video }) {
                                         const end = parseFloat(wordObj.end);
                                         const isActive = currentTime >= start && currentTime <= end;
                                         
-                                        // Each word block occupies exactly 6 lines. Base math offsets line calculation.
-                                        const baseLine = 4 + (idx * 6);
+                                        // Metadata consumes 5 lines, so loop indexing offsets base line calculation to line 6
+                                        const baseLine = 6 + (idx * 6);
 
                                         return (
-                                            <div key={idx} className={isActive ? "bg-blue-950/30 border-y border-blue-900/20" : ""}>
+                                            <div key={idx} className={isActive ? "bg-blue-50/70 border-y border-blue-100" : ""}>
                                                 {/* Word Object Open */}
-                                                <div className="flex hover:bg-slate-900/40">
-                                                    <span className="text-slate-600 select-none text-right w-10 pr-3 border-r border-slate-800/80 sticky left-0 bg-slate-950">{baseLine}</span>
-                                                    <span className="pl-3 text-slate-500">{"    {"}</span>
+                                                <div className="flex hover:bg-slate-50">
+                                                    <span className="text-slate-400 select-none text-right w-10 pr-3 border-r border-slate-200/60 sticky left-0 bg-slate-50/80 font-medium">{baseLine}</span>
+                                                    <span className="pl-3 text-slate-400">{"    {"}</span>
                                                 </div>
                                                 
                                                 {/* Word Sub-value String */}
-                                                <div className="flex hover:bg-slate-900/40">
-                                                    <span className="text-slate-600 select-none text-right w-10 pr-3 border-r border-slate-800/80 sticky left-0 bg-slate-950">{baseLine + 1}</span>
+                                                <div className="flex hover:bg-slate-50">
+                                                    <span className="text-slate-400 select-none text-right w-10 pr-3 border-r border-slate-200/60 sticky left-0 bg-slate-50/80 font-medium">{baseLine + 1}</span>
                                                     <span className="pl-3">
-                                                        <span className="text-cyan-400">{"      \"word\""}</span><span className="text-slate-400">:</span>{' '}
+                                                        <span className="text-indigo-600 font-medium">{"      \"word\""}</span><span className="text-slate-400">:</span>{' '}
                                                         <span 
                                                             onClick={() => handleWordClick(wordObj.start)}
                                                             className={`cursor-pointer transition-all duration-150 inline-block rounded px-1 font-bold ${
                                                                 isActive 
-                                                                    ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-400 scale-105' 
-                                                                    : 'text-emerald-300 hover:bg-slate-800 hover:text-white'
+                                                                    ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-300 scale-105' 
+                                                                    : 'text-emerald-600 hover:bg-slate-100'
                                                             }`}
                                                         >
                                                             "{wordObj.word}"
@@ -187,42 +203,42 @@ export default function InteractivePlayer({ video }) {
                                                 </div>
                                                 
                                                 {/* Start Timestamp Value */}
-                                                <div className="flex hover:bg-slate-900/40">
-                                                    <span className="text-slate-600 select-none text-right w-10 pr-3 border-r border-slate-800/80 sticky left-0 bg-slate-950">{baseLine + 2}</span>
-                                                    <span className="pl-3"><span className="text-cyan-400">{"      \"start\""}</span><span className="text-slate-400">:</span> <span className="text-amber-400">{wordObj.start}</span><span className="text-slate-400">,</span></span>
+                                                <div className="flex hover:bg-slate-50">
+                                                    <span className="text-slate-400 select-none text-right w-10 pr-3 border-r border-slate-200/60 sticky left-0 bg-slate-50/80 font-medium">{baseLine + 2}</span>
+                                                    <span className="pl-3"><span className="text-indigo-600 font-medium">{"      \"start\""}</span><span className="text-slate-400">:</span> <span className="text-amber-600">{wordObj.start}</span><span className="text-slate-400">,</span></span>
                                                 </div>
                                                 
                                                 {/* End Timestamp Value */}
-                                                <div className="flex hover:bg-slate-900/40">
-                                                    <span className="text-slate-600 select-none text-right w-10 pr-3 border-r border-slate-800/80 sticky left-0 bg-slate-950">{baseLine + 3}</span>
-                                                    <span className="pl-3"><span className="text-cyan-400">{"      \"end\""}</span><span className="text-slate-400">:</span> <span className="text-amber-400">{wordObj.end}</span><span className="text-slate-400">,</span></span>
+                                                <div className="flex hover:bg-slate-50">
+                                                    <span className="text-slate-400 select-none text-right w-10 pr-3 border-r border-slate-200/60 sticky left-0 bg-slate-50/80 font-medium">{baseLine + 3}</span>
+                                                    <span className="pl-3"><span className="text-indigo-600 font-medium">{"      \"end\""}</span><span className="text-slate-400">:</span> <span className="text-amber-600">{wordObj.end}</span><span className="text-slate-400">,</span></span>
                                                 </div>
                                                 
                                                 {/* Probability Score Value */}
-                                                <div className="flex hover:bg-slate-900/40">
-                                                    <span className="text-slate-600 select-none text-right w-10 pr-3 border-r border-slate-800/80 sticky left-0 bg-slate-950">{baseLine + 4}</span>
-                                                    <span className="pl-3"><span className="text-cyan-400">{"      \"probability\""}</span><span className="text-slate-400">:</span> <span className="text-amber-400">{wordObj.probability}</span></span>
+                                                <div className="flex hover:bg-slate-50">
+                                                    <span className="text-slate-400 select-none text-right w-10 pr-3 border-r border-slate-200/60 sticky left-0 bg-slate-50/80 font-medium">{baseLine + 4}</span>
+                                                    <span className="pl-3"><span className="text-indigo-600 font-medium">{"      \"probability\""}</span><span className="text-slate-400">:</span> <span className="text-amber-600">{wordObj.probability}</span></span>
                                                 </div>
                                                 
                                                 {/* Word Object Close */}
-                                                <div className="flex hover:bg-slate-900/40">
-                                                    <span className="text-slate-600 select-none text-right w-10 pr-3 border-r border-slate-800/80 sticky left-0 bg-slate-950">{baseLine + 5}</span>
-                                                    <span className="pl-3 text-slate-500">{"    }"}{idx < words.length - 1 ? <span className="text-slate-400">,</span> : ""}</span>
+                                                <div className="flex hover:bg-slate-50">
+                                                    <span className="text-slate-400 select-none text-right w-10 pr-3 border-r border-slate-200/60 sticky left-0 bg-slate-50/80 font-medium">{baseLine + 5}</span>
+                                                    <span className="pl-3 text-slate-400">{"    }"}{idx < words.length - 1 ? <span className="text-slate-400">,</span> : ""}</span>
                                                 </div>
                                             </div>
                                         );
                                     })}
                                     
                                     {/* Array Closing Bracket Line */}
-                                    <div className="flex hover:bg-slate-900/40">
-                                        <span className="text-slate-600 select-none text-right w-10 pr-3 border-r border-slate-800/80 sticky left-0 bg-slate-950">{4 + (words.length * 6)}</span>
-                                        <span className="pl-3 text-slate-500">{"  ]"}</span>
+                                    <div className="flex hover:bg-slate-50">
+                                        <span className="text-slate-400 select-none text-right w-10 pr-3 border-r border-slate-200/60 sticky left-0 bg-slate-50/80 font-medium">{6 + (words.length * 6)}</span>
+                                        <span className="pl-3 text-slate-400">{"  ]"}</span>
                                     </div>
                                     
                                     {/* Root Object Closing Brace Line */}
-                                    <div className="flex hover:bg-slate-900/40">
-                                        <span className="text-slate-600 select-none text-right w-10 pr-3 border-r border-slate-800/80 sticky left-0 bg-slate-950">{5 + (words.length * 6)}</span>
-                                        <span className="pl-3 text-slate-500">{"}"}</span>
+                                    <div className="flex hover:bg-slate-50">
+                                        <span className="text-slate-400 select-none text-right w-10 pr-3 border-r border-slate-200/60 sticky left-0 bg-slate-50/80 font-medium">{7 + (words.length * 6)}</span>
+                                        <span className="pl-3 text-slate-400">{"}"}</span>
                                     </div>
                                 </pre>
                             )
