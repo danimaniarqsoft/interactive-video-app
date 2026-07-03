@@ -8,7 +8,7 @@ This page must list all the videos in the system in pages of 15 and the next fea
 - If the user clic in a record then the system open the Page "Page: Interactive Transcript Player" with the record selected. This page is in the current `index.html` file
 - The list of videos come from a JSON service with the next structure:
 
-Example of single json file:
+Example of a single json file:
 
 ```json
 {

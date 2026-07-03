@@ -26,6 +26,7 @@ dist-ssr
 # Local Media Database / Video Workspace
 public/data/*.mp4
 public/data/*.json
+new_videos/
 
 # ==========================================
 # Python Default Gitignore Rules
