@@ -36,19 +36,22 @@ export default function InteractivePlayer({ video }) {
         }
     };
 
-    // Click to seek to the precise timestamp
+    // Single Click: Seek to the precise timestamp and play/continue video
     const handleWordClick = (start) => {
         if (!videoRef.current) return;
         const targetTime = parseFloat(start);
-        
         videoRef.current.currentTime = targetTime;
         
-        setTimeout(() => {
-            if (Math.abs(videoRef.current.currentTime - targetTime) > 0.5) {
-                videoRef.current.currentTime = targetTime;
-            }
-            videoRef.current.play().catch(e => console.log("Autoplay note:", e));
-        }, 50);
+        // Ensure it triggers play state smoothly
+        videoRef.current.play().catch(e => console.log("Playback interaction note:", e));
+    };
+
+    // Double Click: Seek to the precise timestamp and immediately pause the video
+    const handleWordDoubleClick = (start) => {
+        if (!videoRef.current) return;
+        const targetTime = parseFloat(start);
+        videoRef.current.currentTime = targetTime;
+        videoRef.current.pause();
     };
 
     return (
@@ -61,8 +64,8 @@ export default function InteractivePlayer({ video }) {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
-                {/* Left Side: Video Player */}
-                <div className="lg:col-span-7 sticky top-24">
+                {/* Left Side: Video Player (Hidden on mobile/small screens, visible on lg and up) */}
+                <div className="hidden lg:block lg:col-span-7 sticky top-24">
                     <div className="bg-black rounded-2xl shadow-xl overflow-hidden border border-slate-200 aspect-video flex items-center justify-center">
                         <video 
                             ref={videoRef} 
@@ -76,8 +79,8 @@ export default function InteractivePlayer({ video }) {
                     </div>
                 </div>
 
-                {/* Right Side: Tabbed Pane */}
-                <div className="lg:col-span-5 bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col h-[calc(100vh-14rem)] overflow-hidden">
+                {/* Right Side: Tabbed Pane (Takes full width on mobile, 5 columns on lg and up) */}
+                <div className="col-span-1 lg:col-span-5 bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col h-[calc(100vh-14rem)] overflow-hidden">
                     
                     {/* Tab Navigation Controls */}
                     <div className="flex items-center justify-between p-3 border-b border-slate-100 bg-slate-50/70">
@@ -113,7 +116,7 @@ export default function InteractivePlayer({ video }) {
                         {!loading && !error && (
                             activeTab === 'transcript' ? (
                                 /* Standard Text Interactive View */
-                                <div className="text-lg leading-loose text-slate-700 p-2 bg-white rounded-xl border border-slate-100 shadow-xs">
+                                <div className="text-lg leading-loose text-slate-700 p-2 bg-white rounded-xl border border-slate-100 shadow-xs select-none">
                                     {words.map((wordObj, idx) => {
                                         const start = parseFloat(wordObj.start);
                                         const end = parseFloat(wordObj.end);
@@ -123,7 +126,8 @@ export default function InteractivePlayer({ video }) {
                                             <span 
                                                 key={idx} 
                                                 onClick={() => handleWordClick(wordObj.start)}
-                                                className={`word transition-all duration-150 cursor-pointer ${
+                                                onDoubleClick={() => handleWordDoubleClick(wordObj.start)}
+                                                className={`word transition-all duration-150 cursor-pointer inline-block ${
                                                     isActive 
                                                         ? 'bg-blue-100 text-blue-700 font-bold scale-105 shadow-xs ring-1 ring-blue-300 rounded px-0.5' 
                                                         : 'hover:bg-slate-100 rounded px-0.5'
@@ -184,14 +188,15 @@ export default function InteractivePlayer({ video }) {
                                                     <span className="pl-3 text-slate-400">{"    {"}</span>
                                                 </div>
                                                 
-                                                {/* Word Sub-value String */}
+                                                {/* Word Sub-value String with Single and Double click actions */}
                                                 <div className="flex hover:bg-slate-50">
                                                     <span className="text-slate-400 select-none text-right w-10 pr-3 border-r border-slate-200/60 sticky left-0 bg-slate-50/80 font-medium">{baseLine + 1}</span>
                                                     <span className="pl-3">
                                                         <span className="text-indigo-600 font-medium">{"      \"word\""}</span><span className="text-slate-400">:</span>{' '}
                                                         <span 
                                                             onClick={() => handleWordClick(wordObj.start)}
-                                                            className={`cursor-pointer transition-all duration-150 inline-block rounded px-1 font-bold ${
+                                                            onDoubleClick={() => handleWordDoubleClick(wordObj.start)}
+                                                            className={`cursor-pointer transition-all duration-150 inline-block rounded px-1 font-bold select-none ${
                                                                 isActive 
                                                                     ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-300 scale-105' 
                                                                     : 'text-emerald-600 hover:bg-slate-100'
