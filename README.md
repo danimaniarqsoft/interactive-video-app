@@ -45,6 +45,8 @@ npm install
 
 # Spin up the local Vite development server
 npm run dev
+# or
+npm run dev -- --host
 ```
 
 _The terminal will provide a local URL (typically `http://localhost:5173`). Open this link in your browser to interact with the app._
