@@ -8,6 +8,26 @@ export default function VideoList({ videos, onVideoSelect }) {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const currentVideos = videos.slice(startIndex, startIndex + itemsPerPage);
 
+    // Helper function to dynamically color-code each study state status pill
+    const getStateBadgeColor = (state) => {
+        const normalizedState = state ? state.toLowerCase() : 'new';
+        
+        switch (normalizedState) {
+            case 'new':
+                return 'bg-slate-100 text-slate-600';
+            case 'learning':
+                return 'bg-indigo-50 text-indigo-700';
+            case 'needs review':
+                return 'bg-amber-50 text-amber-700';
+            case 'understood':
+                return 'bg-emerald-50 text-emerald-700';
+            case 'mastered':
+                return 'bg-purple-50 text-purple-700';
+            default:
+                return 'bg-slate-100 text-slate-600';
+        }
+    };
+
     return (
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center">
@@ -20,11 +40,12 @@ export default function VideoList({ videos, onVideoSelect }) {
                         <tr className="bg-slate-50 text-slate-500 text-sm uppercase tracking-wider">
                             <th className="px-6 py-4 font-semibold border-b border-slate-200">Video Name</th>
                             <th className="px-6 py-4 font-semibold border-b border-slate-200">Category</th>
+                            <th className="px-6 py-4 font-semibold border-b border-slate-200">State</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-slate-700">
                         {currentVideos.length === 0 ? (
-                            <tr><td colSpan="2" className="p-6 text-center text-slate-500">No videos found.</td></tr>
+                            <tr><td colSpan="3" className="p-6 text-center text-slate-500">No videos found.</td></tr>
                         ) : (
                             currentVideos.map((video, idx) => (
                                 <tr key={idx} onClick={() => onVideoSelect(video)} className="hover:bg-slate-50 cursor-pointer transition-colors">
@@ -32,6 +53,11 @@ export default function VideoList({ videos, onVideoSelect }) {
                                     <td className="px-6 py-4 text-slate-500">
                                         <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">
                                             {video.category}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-500">
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${getStateBadgeColor(video.state)}`}>
+                                            {video.state || 'New'}
                                         </span>
                                     </td>
                                 </tr>

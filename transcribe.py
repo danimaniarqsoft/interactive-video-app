@@ -148,6 +148,7 @@ def run_local_pipeline(target_folder, whisper_model, hf_pipe):
             # --- 3. CONSTRUCT TARGET STRUCTURE INDEX MANIFEST ENTRY ---
             entry = {
                 "title": local_metadata.get("title", os.path.splitext(file_name)[0]),
+                "state": "New",
                 "category": local_metadata.get("category", "General"),
                 "video_url": f"data/{file_name}",
                 "script_url": f"data/{json_name}"

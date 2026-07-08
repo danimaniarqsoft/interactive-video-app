@@ -8,10 +8,17 @@ export default function InteractivePlayer({ video }) {
     const [error, setError] = useState(null);
     const [currentTime, setCurrentTime] = useState(0); // Tracks real-time video playback
     const [activeTab, setActiveTab] = useState('transcript'); // Toggle state: 'transcript' or 'json'
+    const [currentStatus, setCurrentStatus] = useState('New'); // Tracks current study progress state
     const videoRef = useRef(null);
+
+    // List of all valid study progression milestones
+    const statusOptions = ['New', 'Learning', 'Needs Review', 'Understood', 'Mastered'];
 
     useEffect(() => {
         setLoading(true);
+        // Sync local dropdown value when the parent component swaps active videos
+        setCurrentStatus(video.state || 'New');
+
         fetch(`/${video.script_url}`)
             .then(res => {
                 if (!res.ok) throw new Error("Could not load transcript");
@@ -54,12 +61,70 @@ export default function InteractivePlayer({ video }) {
         videoRef.current.pause();
     };
 
+    // Updates state locally and saves selection permanently to videos.json via backend endpoint
+    const handleStateChange = async (newStatus) => {
+        setCurrentStatus(newStatus);
+        
+        try {
+            // Sends update metadata back to server script responsible for writing file updates
+            const response = await fetch('/api/videos/update-state', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    video_url: video.video_url,
+                    state: newStatus
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to persist status configuration on server backend.");
+            }
+        } catch (err) {
+            console.error("Data Save Error:", err);
+        }
+    };
+
+    // Status styling color dictionary matching the core selection list
+    const getStatusColorStyles = (status) => {
+        switch (status.toLowerCase()) {
+            case 'new': return 'bg-slate-100 text-slate-700 border-slate-300 focus:ring-slate-400';
+            case 'learning': return 'bg-indigo-50 text-indigo-700 border-indigo-200 focus:ring-indigo-400';
+            case 'needs review': return 'bg-amber-50 text-amber-700 border-amber-200 focus:ring-amber-400';
+            case 'understood': return 'bg-emerald-50 text-emerald-700 border-emerald-200 focus:ring-emerald-400';
+            case 'mastered': return 'bg-purple-50 text-purple-700 border-purple-200 focus:ring-purple-400';
+            default: return 'bg-slate-100 text-slate-700 border-slate-300 focus:ring-slate-400';
+        }
+    };
+
     return (
         <div>
-            {/* Video Title Banner */}
-            <div className="mb-6">
-                <h2 className="text-3xl font-bold text-slate-900">{video.title}</h2>
-                <p className="text-sm text-slate-500 mt-1 uppercase tracking-wider font-semibold">{video.category}</p>
+            {/* Video Title & Meta State Banner */}
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+                <div>
+                    <h2 className="text-3xl font-bold text-slate-900">{video.title}</h2>
+                    <p className="text-sm text-slate-500 mt-1 uppercase tracking-wider font-semibold">{video.category}</p>
+                </div>
+                
+                {/* Clean, Dynamic Progress State Listbox Selector */}
+                <div className="flex items-center gap-2.5 min-w-[210px]">
+                    <label htmlFor="state-select" className="text-xs font-bold uppercase tracking-wider text-slate-400 whitespace-nowrap">
+                        Study Status:
+                    </label>
+                    <select
+                        id="state-select"
+                        value={currentStatus}
+                        onChange={(e) => handleStateChange(e.target.value)}
+                        className={`w-full text-xs font-bold uppercase tracking-wide px-3 py-2 rounded-xl border shadow-xs cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 ${getStatusColorStyles(currentStatus)}`}
+                    >
+                        {statusOptions.map((option) => (
+                            <option key={option} value={option} className="bg-white text-slate-800 font-medium normal-case">
+                                {option}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
