@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 export default function VideoList({ videos, onVideoSelect }) {
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 15;
+    const itemsPerPage = 5;
 
     const totalPages = Math.ceil(videos.length / itemsPerPage) || 1;
     const startIndex = (currentPage - 1) * itemsPerPage;
