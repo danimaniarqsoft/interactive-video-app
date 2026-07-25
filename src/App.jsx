@@ -6,7 +6,7 @@ import InteractivePlayer from './components/InteractivePlayer';
 export default function App() {
     const [videos, setVideos] = useState([]);
     const [currentVideo, setCurrentVideo] = useState(null);
-    const [isFullWidth, setIsFullWidth] = useState(false); // State to track full-width layout
+    const [isFullWidth, setIsFullWidth] = useState(true); // State to track full-width layout
 
     useEffect(() => {
         // Fetch videos from the public folder
