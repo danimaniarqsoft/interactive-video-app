@@ -13,6 +13,9 @@ export default function InteractivePlayer({ video }) {
     // Toggle state for showing or hiding the video player
     const [isVideoVisible, setIsVideoVisible] = useState(true);
 
+    // NEW STATE: Stores the timestamp (in seconds) of the last word clicked by the user
+    const [lastClickedTime, setLastClickedTime] = useState(null);
+
     const videoRef = useRef(null);
 
     // List of all valid study progression milestones
@@ -39,6 +42,22 @@ export default function InteractivePlayer({ video }) {
             });
     }, [video]);
 
+    // NEW EFFECT: Global keyboard listener for the "Control" key
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            // Triggers playback jump when 'Control' is pressed and a word was previously clicked
+            if (event.key === 'Control' && lastClickedTime !== null && videoRef.current) {
+                videoRef.current.currentTime = lastClickedTime;
+                videoRef.current.play().catch(e => console.log("Playback interaction note:", e));
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [lastClickedTime]);
+
     // Syncs active timestamps during video playback
     const handleTimeUpdate = () => {
         if (videoRef.current) {
@@ -46,18 +65,20 @@ export default function InteractivePlayer({ video }) {
         }
     };
 
-    // Single Click: Seek to timestamp and play
+    // Single Click: Seek to timestamp, play, and store as latest clicked word
     const handleWordClick = (start) => {
         if (!videoRef.current) return;
         const targetTime = parseFloat(start);
+        setLastClickedTime(targetTime); // Save timestamp
         videoRef.current.currentTime = targetTime;
         videoRef.current.play().catch(e => console.log("Playback interaction note:", e));
     };
 
-    // Double Click: Seek to timestamp and pause
+    // Double Click: Seek to timestamp, pause, and store as latest clicked word
     const handleWordDoubleClick = (start) => {
         if (!videoRef.current) return;
         const targetTime = parseFloat(start);
+        setLastClickedTime(targetTime); // Save timestamp
         videoRef.current.currentTime = targetTime;
         videoRef.current.pause();
     };
@@ -144,7 +165,7 @@ export default function InteractivePlayer({ video }) {
                     gap: isVideoVisible ? '2rem' : '0rem'
                 }}
             >
-                {/* Left Side: Video Player Container (Collapses smoothly horizontally & vertically) */}
+                {/* Left Side: Video Player Container */}
                 <div 
                     className={`w-full transition-all duration-500 ease-in-out sticky top-24 ${
                         isVideoVisible 
@@ -168,7 +189,7 @@ export default function InteractivePlayer({ video }) {
                     </div>
                 </div>
 
-                {/* Right Side: Transcript & JSON Panel (Expands smoothly to fill available width) */}
+                {/* Right Side: Transcript & JSON Panel */}
                 <div 
                     className="w-full bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col h-[calc(100vh-14rem)] overflow-hidden transition-all duration-500 ease-in-out"
                     style={{
