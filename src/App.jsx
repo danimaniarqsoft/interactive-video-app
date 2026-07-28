@@ -79,7 +79,12 @@ export default function App() {
                         setSelectedStates={setSelectedStates}
                     />
                 ) : (
-                    <InteractivePlayer video={currentVideo} />
+                    /* Pass 'videos' and 'onSelectVideo' to enable item switching */
+                    <InteractivePlayer 
+                        video={currentVideo} 
+                        videos={videos} 
+                        onSelectVideo={setCurrentVideo} 
+                    />
                 )}
             </main>
         </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-export default function InteractivePlayer({ video }) {
+export default function InteractivePlayer({ video, videos = [], onSelectVideo }) {
     const [words, setWords] = useState([]);
     const [detectedLanguage, setDetectedLanguage] = useState('en');
     const [languageProbability, setLanguageProbability] = useState(1.0);
@@ -13,13 +13,33 @@ export default function InteractivePlayer({ video }) {
     // Toggle state for showing or hiding the video player
     const [isVideoVisible, setIsVideoVisible] = useState(true);
 
-    // NEW STATE: Stores the timestamp (in seconds) of the last word clicked by the user
+    // Stores the timestamp (in seconds) of the last word clicked by the user
     const [lastClickedTime, setLastClickedTime] = useState(null);
 
     const videoRef = useRef(null);
 
     // List of all valid study progression milestones
     const statusOptions = ['New', 'Learning', 'Needs Review', 'Understood', 'Mastered'];
+
+    // --- NAVIGATION LOGIC ---
+    // Find index of current video in the list
+    const currentIndex = videos.findIndex(v => v.video_url === video.video_url);
+    const hasPrevious = currentIndex > 0;
+    const hasNext = currentIndex >= 0 && currentIndex < videos.length - 1;
+
+    // Handler to navigate to the previous video item
+    const handlePrevious = () => {
+        if (hasPrevious && onSelectVideo) {
+            onSelectVideo(videos[currentIndex - 1]);
+        }
+    };
+
+    // Handler to navigate to the next video item
+    const handleNext = () => {
+        if (hasNext && onSelectVideo) {
+            onSelectVideo(videos[currentIndex + 1]);
+        }
+    };
 
     useEffect(() => {
         setLoading(true);
@@ -42,10 +62,9 @@ export default function InteractivePlayer({ video }) {
             });
     }, [video]);
 
-    // NEW EFFECT: Global keyboard listener for the "Control" key
+    // Global keyboard listener for the "Control" key
     useEffect(() => {
         const handleKeyDown = (event) => {
-            // Triggers playback jump when 'Control' is pressed and a word was previously clicked
             if (event.key === 'Control' && lastClickedTime !== null && videoRef.current) {
                 videoRef.current.currentTime = lastClickedTime;
                 videoRef.current.play().catch(e => console.log("Playback interaction note:", e));
@@ -69,7 +88,7 @@ export default function InteractivePlayer({ video }) {
     const handleWordClick = (start) => {
         if (!videoRef.current) return;
         const targetTime = parseFloat(start);
-        setLastClickedTime(targetTime); // Save timestamp
+        setLastClickedTime(targetTime);
         videoRef.current.currentTime = targetTime;
         videoRef.current.play().catch(e => console.log("Playback interaction note:", e));
     };
@@ -78,7 +97,7 @@ export default function InteractivePlayer({ video }) {
     const handleWordDoubleClick = (start) => {
         if (!videoRef.current) return;
         const targetTime = parseFloat(start);
-        setLastClickedTime(targetTime); // Save timestamp
+        setLastClickedTime(targetTime);
         videoRef.current.currentTime = targetTime;
         videoRef.current.pause();
     };
@@ -128,7 +147,27 @@ export default function InteractivePlayer({ video }) {
                     <p className="text-sm text-slate-500 mt-1 uppercase tracking-wider font-semibold">{video.category}</p>
                 </div>
                 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* Previous / Next Item Navigation Buttons */}
+                    <div className="flex items-center gap-1.5">
+                        <button
+                            onClick={handlePrevious}
+                            disabled={!hasPrevious}
+                            className="px-3 py-2 text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs cursor-pointer"
+                            title="Go to previous video"
+                        >
+                            ← Prev
+                        </button>
+                        <button
+                            onClick={handleNext}
+                            disabled={!hasNext}
+                            className="px-3 py-2 text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xs cursor-pointer"
+                            title="Go to next video"
+                        >
+                            Next →
+                        </button>
+                    </div>
+
                     {/* Toggle Video Button */}
                     <button
                         onClick={() => setIsVideoVisible(prev => !prev)}
@@ -158,7 +197,7 @@ export default function InteractivePlayer({ video }) {
                 </div>
             </div>
 
-            {/* Main Interactive Workspace Container with Smooth Flexbox Transitions */}
+            {/* Main Interactive Workspace Container */}
             <div 
                 className="flex flex-col lg:flex-row items-start transition-all duration-500 ease-in-out"
                 style={{
