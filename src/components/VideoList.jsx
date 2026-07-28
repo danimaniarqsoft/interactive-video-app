@@ -1,11 +1,36 @@
 import { useState } from 'react';
 
-export default function VideoList({ videos, onVideoSelect }) {
-    // --- STATE MANAGEMENT ---
-    const [currentPage, setCurrentPage] = useState(1);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCategories, setSelectedCategories] = useState([]);
-    const [selectedStates, setSelectedStates] = useState([]);
+export default function VideoList({ 
+    videos, 
+    onVideoSelect,
+    // Optional persistent state props passed from parent
+    currentPage: externalPage,
+    setCurrentPage: setExternalPage,
+    searchQuery: externalSearch,
+    setSearchQuery: setExternalSearch,
+    selectedCategories: externalCategories,
+    setSelectedCategories: setExternalCategories,
+    selectedStates: externalStates,
+    setSelectedStates: setExternalStates
+}) {
+    // --- LOCAL STATE FALLBACKS ---
+    const [localPage, setLocalPage] = useState(1);
+    const [localSearch, setLocalSearch] = useState('');
+    const [localCategories, setLocalCategories] = useState([]);
+    const [localStates, setLocalStates] = useState([]);
+
+    // Determine whether to use external (parent) state or local fallback state
+    const currentPage = externalPage !== undefined ? externalPage : localPage;
+    const setCurrentPage = setExternalPage || setLocalPage;
+
+    const searchQuery = externalSearch !== undefined ? externalSearch : localSearch;
+    const setSearchQuery = setExternalSearch || setLocalSearch;
+
+    const selectedCategories = externalCategories !== undefined ? externalCategories : localCategories;
+    const setSelectedCategories = setExternalCategories || setLocalCategories;
+
+    const selectedStates = externalStates !== undefined ? externalStates : localStates;
+    const setSelectedStates = setExternalStates || setLocalStates;
 
     const itemsPerPage = 5;
 

@@ -4,12 +4,20 @@ import VideoList from './components/VideoList';
 import InteractivePlayer from './components/InteractivePlayer';
 
 export default function App() {
+    // --- DATABASE & NAVIGATION STATE ---
     const [videos, setVideos] = useState([]);
     const [currentVideo, setCurrentVideo] = useState(null);
-    const [isFullWidth, setIsFullWidth] = useState(true); // State to track full-width layout
+    const [isFullWidth, setIsFullWidth] = useState(true); // Tracks full-width layout setting
+
+    // --- PERSISTENT VIDEO LIST STATE ---
+    // These states live here so they persist even when VideoList unmounts!
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [selectedStates, setSelectedStates] = useState([]);
 
     useEffect(() => {
-        // Fetch videos from the public folder
+        // Fetch videos from the public folder database
         fetch('/data/videos.json')
             .then(res => res.json())
             .then(data => setVideos(data))
@@ -56,8 +64,20 @@ export default function App() {
                     </div>
                 )}
 
+                {/* Conditional View Rendering */}
                 {!currentVideo ? (
-                    <VideoList videos={videos} onVideoSelect={setCurrentVideo} />
+                    <VideoList 
+                        videos={videos} 
+                        onVideoSelect={setCurrentVideo} 
+                        currentPage={currentPage}
+                        setCurrentPage={setCurrentPage}
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        selectedCategories={selectedCategories}
+                        setSelectedCategories={setSelectedCategories}
+                        selectedStates={selectedStates}
+                        setSelectedStates={setSelectedStates}
+                    />
                 ) : (
                     <InteractivePlayer video={currentVideo} />
                 )}
